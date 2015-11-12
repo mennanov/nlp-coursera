@@ -4,19 +4,20 @@ from providedcode.transitionparser import TransitionParser
 from providedcode.evaluate import DependencyEvaluator
 from featureextractor import FeatureExtractor
 from transition import Transition
+from providedcode.dependencygraph import DependencyGraph
 
 if __name__ == '__main__':
-    data = dataset.get_swedish_train_corpus().parsed_sents()
+    data = dataset.get_danish_train_corpus().parsed_sents()
     random.seed(1234)
     subdata = random.sample(data, 200)
 
     try:
-        # tp = TransitionParser(Transition, FeatureExtractor)
-        # tp.train(subdata)
-        # tp.save('swedish.model')
+        tp = TransitionParser(Transition, FeatureExtractor)
+        tp.train(subdata)
+        tp.save('danish.model')
 
-        testdata = dataset.get_swedish_test_corpus().parsed_sents()
-        tp = TransitionParser.load('badfeatures.model')
+        testdata = dataset.get_danish_test_corpus().parsed_sents()
+        tp = TransitionParser.load('danish.model')
 
         parsed = tp.parse(testdata)
 

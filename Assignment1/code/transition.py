@@ -61,7 +61,7 @@ class Transition(object):
             :param conf: is the current configuration
             :return : A new configuration or -1 if the pre-condition is not satisfied
         """
-        if not conf.buffer:
+        if not conf.stack:
             return -1
         s = conf.stack[-1]
 
