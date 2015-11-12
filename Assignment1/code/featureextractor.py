@@ -86,6 +86,15 @@ class FeatureExtractor(object):
             if FeatureExtractor._check_informative(dep_right_most):
                 result.append('STK_0_RDEP_' + dep_right_most)
 
+            if 'lemma' in token and FeatureExtractor._check_informative(token['lemma']):
+                result.append('STK_0_LEMMA_' + token['lemma'])
+
+            if 'ctag' in token and FeatureExtractor._check_informative(token['ctag']):
+                result.append('STK_0_CTAG_' + token['ctag'])
+
+            if 'tag' in token and FeatureExtractor._check_informative(token['tag']):
+                result.append('STK_0_TAG_' + token['tag'])
+
         if buffer:
             buffer_idx0 = buffer[0]
             token = tokens[buffer_idx0]
@@ -103,5 +112,14 @@ class FeatureExtractor(object):
                 result.append('BUF_0_LDEP_' + dep_left_most)
             if FeatureExtractor._check_informative(dep_right_most):
                 result.append('BUF_0_RDEP_' + dep_right_most)
+
+            if 'lemma' in token and FeatureExtractor._check_informative(token['lemma']):
+                result.append('BUF_0_LEMMA_' + token['lemma'])
+
+            if 'ctag' in token and FeatureExtractor._check_informative(token['ctag']):
+                result.append('BUF_0_CTAG_' + token['ctag'])
+
+            if 'tag' in token and FeatureExtractor._check_informative(token['tag']):
+                result.append('BUF_0_TAG_' + token['tag'])
 
         return result
