@@ -1,10 +1,10 @@
 import random
+
 from providedcode import dataset
 from providedcode.transitionparser import TransitionParser
 from providedcode.evaluate import DependencyEvaluator
 from featureextractor import FeatureExtractor
 from transition import Transition
-from providedcode.dependencygraph import DependencyGraph
 
 if __name__ == '__main__':
     data = dataset.get_danish_train_corpus().parsed_sents()

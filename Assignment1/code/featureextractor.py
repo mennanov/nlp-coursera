@@ -63,7 +63,6 @@ class FeatureExtractor(object):
 
         global printed
         if not printed:
-            print("This is not a very good feature extractor!")
             printed = True
 
         # an example set of features:
@@ -127,9 +126,6 @@ class FeatureExtractor(object):
 
             if 'tag' in token and FeatureExtractor._check_informative(token['tag']):
                 result.append('BUF_0_TAG_' + token['tag'])
-
-            if 'rel' in token and FeatureExtractor._check_informative(token['rel']):
-                result.append('BUF_0_REL_' + token['rel'])
 
         if len(buffer) > 1:
             buffer_idx1 = buffer[1]
