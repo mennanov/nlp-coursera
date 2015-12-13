@@ -13,7 +13,6 @@ MINUS_INFINITY_SENTENCE_LOG_PROB = -1000
 # training_corpus: is a list of the sentences. Each sentence is a string with tokens separated by spaces, ending in a newline character.
 # This function outputs three python dictionaries, where the keys are tuples expressing the ngram and the value is the log probability of that ngram
 def calc_probabilities(training_corpus):
-    trigram_p = {}
     unigram_c = collections.defaultdict(int)
     bigram_c = collections.defaultdict(int)
     trigram_c = collections.defaultdict(int)
@@ -79,6 +78,24 @@ def q1_output(unigrams, bigrams, trigrams, filename):
 # This function must return a python list of scores, where the first element is the score of the first sentence, etc. 
 def score(ngram_p, n, corpus):
     scores = []
+    for sentence in corpus:
+        sentence_score = 0
+        tokens0 = sentence.strip().split()
+        if n == 1:
+            tokens = tokens0 + [STOP_SYMBOL]
+        elif n == 2:
+            tokens = nltk.bigrams([START_SYMBOL] + tokens0 + [STOP_SYMBOL])
+        elif n == 3:
+            tokens = nltk.trigrams([START_SYMBOL] + [START_SYMBOL] + tokens0 + [STOP_SYMBOL])
+        else:
+            raise ValueError('Parameter "n" has an invalid value %s' % n)
+        for token in tokens:
+            try:
+                p = ngram_p[token]
+            except KeyError:
+                p = MINUS_INFINITY_SENTENCE_LOG_PROB
+            sentence_score += p
+        scores.append(sentence_score)
     return scores
 
 # Outputs a score to a file
