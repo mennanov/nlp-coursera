@@ -112,7 +112,31 @@ def score_output(scores, filename):
 # Each ngram argument is a python dictionary where the keys are tuples that express an ngram and the value is the log probability of that ngram
 # Like score(), this function returns a python list of scores
 def linearscore(unigrams, bigrams, trigrams, corpus):
+    """Linear interpolate the probabilities.
+
+    See http://web.stanford.edu/~jurafsky/slp3/4.pdf paragraph 4.4.3
+    """
     scores = []
+    # Set lambda equal to all the n-grams so that it sums up to 1.
+    lambda_ = 1.0 / 3
+    for sentence in corpus:
+        interpolated_score = 0
+        tokens0 = sentence.strip().split()
+        for trigram in nltk.trigrams([START_SYMBOL] + [START_SYMBOL] + tokens0 + [STOP_SYMBOL]):
+            try:
+                p3 = trigrams[trigram]
+            except KeyError:
+                p3 = MINUS_INFINITY_SENTENCE_LOG_PROB
+            try:
+                p2 = bigrams[trigram[1:3]]
+            except KeyError:
+                p2 = MINUS_INFINITY_SENTENCE_LOG_PROB
+            try:
+                p1 = unigrams[trigram[2]]
+            except KeyError:
+                p1 = MINUS_INFINITY_SENTENCE_LOG_PROB
+            interpolated_score += math.log(lambda_ * (2 ** p3) + lambda_ * (2 ** p2) + lambda_ * (2 ** p1), 2)
+        scores.append(interpolated_score)
     return scores
 
 DATA_PATH = 'data/'
