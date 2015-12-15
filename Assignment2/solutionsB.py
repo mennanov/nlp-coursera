@@ -1,3 +1,4 @@
+import collections
 import sys
 import nltk
 import math
@@ -19,6 +20,18 @@ LOG_PROB_OF_ZERO = -1000
 def split_wordtags(brown_train):
     brown_words = []
     brown_tags = []
+    for sentence in brown_train:
+        brown_words_s = [START_SYMBOL] * 2
+        brown_tags_s = [START_SYMBOL] * 2
+        for token in sentence.strip().split():
+            slash_index = token.rfind('/')
+            word, tag = token[:slash_index], token[slash_index + 1:]
+            brown_words_s.append(word)
+            brown_tags_s.append(tag)
+        brown_words_s.append(STOP_SYMBOL)
+        brown_tags_s.append(STOP_SYMBOL)
+        brown_words.append(brown_words_s)
+        brown_tags.append(brown_tags_s)
     return brown_words, brown_tags
 
 
@@ -26,8 +39,20 @@ def split_wordtags(brown_train):
 # This function takes tags from the training data and calculates tag trigram probabilities.
 # It returns a python dictionary where the keys are tuples that represent the tag trigram, and the values are the log probability of that trigram
 def calc_trigrams(brown_tags):
-    q_values = {}
-    return q_values
+    bigram_c = collections.defaultdict(int)
+    trigram_c = collections.defaultdict(int)
+
+    for sentence in brown_tags:
+        for bigram in nltk.bigrams(sentence):
+            bigram_c[bigram] += 1
+
+    for sentence in brown_tags:
+        for trigram in nltk.trigrams(sentence):
+            trigram_c[trigram] += 1
+
+    trigram_p = {k: math.log(float(v) / bigram_c[k[:2]], 2) for k, v in trigram_c.iteritems()}
+    return trigram_p
+
 
 # This function takes output from calc_trigrams() and outputs it in the proper format
 def q2_output(q_values, filename):
@@ -45,15 +70,28 @@ def q2_output(q_values, filename):
 # brown_words is a python list where every element is a python list of the words of a particular sentence.
 # Note: words that appear exactly 5 times should be considered rare!
 def calc_known(brown_words):
-    known_words = set([])
+    known_words = set()
+    words_c = collections.defaultdict(int)
+    # Count all the words
+    for sentence in brown_words:
+        for word in sentence:
+            words_c[word] += 1
+
+    # Return non-rare words.
+    for word, c in words_c.iteritems():
+        if c > RARE_WORD_MAX_FREQ:
+            known_words.add(word)
     return known_words
 
 # TODO: IMPLEMENT THIS FUNCTION
 # Takes the words from the training data and a set of words that should not be replaced for '_RARE_'
 # Returns the equivalent to brown_words but replacing the unknown words by '_RARE_' (use RARE_SYMBOL constant)
 def replace_rare(brown_words, known_words):
-    brown_words_rare = []
-    return brown_words_rare
+    for i, sentence in enumerate(brown_words):
+        for j, word in enumerate(sentence):
+            if word not in known_words:
+                brown_words[i][j] = RARE_SYMBOL
+    return brown_words
 
 # This function takes the ouput from replace_rare and outputs it to a file
 def q3_output(rare, filename):
@@ -70,8 +108,18 @@ def q3_output(rare, filename):
 # The second return value is a set of all possible tags for this data set
 def calc_emission(brown_words_rare, brown_tags):
     e_values = {}
-    taglist = set([])
-    return e_values, taglist
+    e_values_c = collections.defaultdict(int)
+    tags_c = collections.defaultdict(int)
+
+    for word_sentence, tag_sentence in zip(brown_words_rare, brown_tags):
+        for word, tag in zip(word_sentence, tag_sentence):
+            e_values_c[(word, tag)] += 1
+            tags_c[tag] += 1
+
+    for (word, tag), p in e_values_c.iteritems():
+        e_values[(word, tag)] = math.log(float(p) / tags_c[tag], 2)
+
+    return e_values, set(tags_c)
 
 # This function takes the output from calc_emissions() and outputs it
 def q4_output(e_values, filename):
