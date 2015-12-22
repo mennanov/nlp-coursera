@@ -3,7 +3,6 @@ from sklearn import svm
 from sklearn import neighbors
 import nltk
 import collections
-import main
 
 
 # don't change the window size
@@ -28,7 +27,7 @@ def build_s(data):
     s = collections.defaultdict(set)
 
     # implement your code here
-    for lexelt, instances in list(data.iteritems())[:5]:
+    for lexelt, instances in data.iteritems():
         for (instance_id, left, head, right, senseid) in instances:
             left_tokens = nltk.word_tokenize(left)
             right_tokens = nltk.word_tokenize(right)
@@ -127,8 +126,8 @@ def print_results(results ,output_file):
         for lexelt, predictions in results.iteritems():
             predictions.sort(key=lambda x: x[0])
             for instance_id, sense_id in predictions:
-                lines.append((main.replace_accented(lexelt), main.replace_accented(instance_id),
-                              main.replace_accented(unicode(sense_id))))
+                lines.append((replace_accented(lexelt), replace_accented(instance_id),
+                              replace_accented(unicode(sense_id))))
         lines.sort(key=lambda x: x[0])
         for line in lines:
             fp.write('{} {} {}\n'.format(*line))

@@ -178,7 +178,7 @@ def evaluate(files,test_files,baselines,references,scores):
       print 'Please save your output file', f, 'under Assignment3 directory.'
       continue
       
-    command = "scorer2 " + f + " " + test_file
+    command = "./scorer2 " + f + " " + test_file
     print command
     
     #res = subprocess.check_output(command,shell = True)
