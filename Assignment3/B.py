@@ -1,13 +1,16 @@
 import A
 from sklearn.feature_extraction import DictVectorizer
 from sklearn import svm
-from sklearn import neighbors
 import nltk
 import collections
 import sys
 
 # You might change the window size
 window_size = 15
+
+pos_window = 2
+
+collocations_window = 2
 
 
 def normalize_tokens(tokens, language):
@@ -36,13 +39,10 @@ def extract_features(data, language):
     features = {}
     labels = {}
     all_words = collections.Counter()
-    if language == 'catalan':
-        stemmer = nltk.stem.lancaster.LancasterStemmer()
-    else:
+    try:
         stemmer = nltk.stem.snowball.SnowballStemmer(language)
-    # tagger = nltk.tag.perceptron.PerceptronTagger()
-
-    pos_window = 2
+    except ValueError:
+        stemmer = nltk.stem.lancaster.LancasterStemmer()
 
     # implement your code here
 
@@ -58,35 +58,10 @@ def extract_features(data, language):
 
     # Add features.
     for (instance_id, left_context, head, right_context, sense_id) in data:
-        features[instance_id] = {}
+        features[instance_id] = collections.defaultdict(int)
 
         left_tokens = normalize_tokens(nltk.word_tokenize(left_context.lower()), language)
         right_tokens = normalize_tokens(nltk.word_tokenize(right_context.lower()), language)
-
-        # Feature 1: POS of 4 neighbors.
-        # left neighbors
-
-        # for i in xrange(1, pos_window + 1):
-        #     key = 'POS-{}'.format(i)
-        #     for t in nltk.tag.mapping._UNIVERSAL_TAGS:
-        #         features[instance_id]['{}-{}'.format(key, t)] = 0
-        #
-        #     try:
-        #         tag = nltk.tag._pos_tag(left_tokens, None, tagger)[-i][1]
-        #         features[instance_id]['{}-{}'.format(key, tag)] = 1
-        #     except IndexError:
-        #         features[instance_id][key] = 0
-        # # right neighbors
-        # for i in xrange(pos_window):
-        #     key = 'POS-{}'.format(i)
-        #     for t in nltk.tag.mapping._UNIVERSAL_TAGS:
-        #         features[instance_id]['{}-{}'.format(key, t)] = 0
-        #
-        #     try:
-        #         tag = nltk.tag._pos_tag(left_tokens, None, tagger)[i][1]
-        #         features[instance_id]['{}-{}'.format(key, tag)] = 1
-        #     except IndexError:
-        #         features[instance_id][key] = 0
 
         left_tokens_stemmed = [stemmer.stem(t) for t in left_tokens]
         right_tokens_stemmed = [stemmer.stem(t) for t in right_tokens]
@@ -94,6 +69,21 @@ def extract_features(data, language):
         # Feature 2: add all words as features.
         for w in all_words:
             features[instance_id][w] = tokens.count(w)
+
+        # Add collocations.
+        # Left neighbors.
+        for i in xrange(1, collocations_window + 1):
+            try:
+                features[instance_id]['WL-{}'.format(i)] = left_tokens_stemmed[-i]
+            except IndexError:
+                features[instance_id]['WL-{}'.format(i)] = 0
+
+        # Right neighbors.
+        for i in xrange(collocations_window):
+            try:
+                features[instance_id]['WR-{}'.format(i)] = right_tokens_stemmed[i]
+            except IndexError:
+                features[instance_id]['WR-{}'.format(i)] = 0
 
     return features, labels
 
@@ -184,10 +174,8 @@ def classify(X_train, X_test, y_train):
 
     # implement your code here
     svm_results = []
-    knn_results = []
 
     svm_clf = svm.LinearSVC()
-    # knn_clf = neighbors.KNeighborsClassifier()
 
     x_matrix = []
     y_vector = []
@@ -196,11 +184,9 @@ def classify(X_train, X_test, y_train):
         y_vector.append(y_train[instance_id])
 
     svm_clf.fit(x_matrix, y_vector)
-    # knn_clf.fit(x_matrix, y_vector)
 
     for instance_id, x in X_test.iteritems():
         svm_results.append((instance_id, svm_clf.predict(x)[0]))
-        # knn_results.append((instance_id, knn_clf.predict(x)[0]))
 
     return svm_results
 
